@@ -1,0 +1,42 @@
+---
+title: "4/11/19"
+author: "Reesa John"
+date: "April 11, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(matlib)
+```
+
+```{r}
+y = c(70.6,64.3)
+a = matrix(c(22.1,9.8,9.8,16.8),nrow = 2, ncol =2)
+```
+
+d = a'%*%y
+dbar =a%*%ybar
+Var(dbar) = Var(a%*%ybar)
+a'Var(y)a
+
+To calculate SDs we need to take the square root of the 
+```{r}
+mu1 = c(3.63,3.35)
+mu2 = c(3.95,2.41)
+
+n1 = 21
+n2 = 33
+
+cov1 = matrix(c(1,-0.73,-0.73,2.46),nrow=2,ncol=2)
+cov2 = matrix(c(1.16,-0.57,-0.57,1.89),nrow=2,ncol=2)
+
+cov = (((n1-1)*cov1)+((n2-1)*cov2))/(n1+n2-2)
+
+t2 = ((n1*n2))*(t(mu1-mu2)%*%inv(cov)%*%(mu1-mu2))/(n1+n2)
+
+p=2
+
+f= (n1+n2-p-1)*t2/(p*(n1+n2-2))
+
+```

@@ -1,0 +1,467 @@
+---
+title: 'Lab 3: Testing Mean Vectors'
+author: "Reesa John"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r, include = FALSE}
+## DO NOT CHANGE THIS CODE
+options(digits=3)
+knitr::opts_chunk$set(fig.width=4, fig.height=4) 
+library(tidyverse)
+library(broom)
+library(GGally)
+library(Hotelling)
+library(MVN)
+
+## Note: The packages "Hotelling" and "MVN"are new to us this lab.  
+## You will probably have to use 'install.packages()' in your console to make them available
+```
+
+For this lab, we will try to determine which factors contribute to the percieved quality of red wine.  The following code will load your dataset.
+
+```{r}
+# Load the data
+wine = read.csv("http://kbodwin.web.unc.edu/files/2017/11/redWines.csv")
+```
+
+Here is a description of the dataset supplied by the creators:
+
+```
+P. Cortez, A. Cerdeira, F. Almeida, T. Matos and J. Reis. 
+  Modeling wine preferences by data mining from physicochemical properties.
+  In Decision Support Systems, Elsevier, 47(4):547-553. ISSN: 0167-9236.
+
+  In the above reference, two datasets were created, using red and white wine samples.
+  The inputs include objective tests (e.g. PH values) and the output is based on sensory data
+  (median of at least 3 evaluations made by wine experts). Each expert graded the wine quality 
+  as 0 (bad) or 1 (good). 
+
+Attribute information:
+
+   For more information, read [Cortez et al., 2009].
+
+   Input variables (based on physicochemical tests):
+   1 - fixed acidity (tartaric acid - g / dm^3)
+   2 - volatile acidity (acetic acid - g / dm^3)
+   3 - citric acid (g / dm^3)
+   4 - residual sugar (g / dm^3)
+   5 - chlorides (sodium chloride - g / dm^3
+   6 - free sulfur dioxide (mg / dm^3)
+   7 - total sulfur dioxide (mg / dm^3)
+   8 - density (g / cm^3)
+   9 - pH
+   10 - sulphates (potassium sulphate - g / dm3)
+   11 - alcohol (% by volume)
+   Output variable (based on sensory data): 
+   12 - quality (score of 0 or 1)
+
+Description of attributes:
+
+   1 - fixed acidity: most acids involved with wine or fixed or nonvolatile (do not evaporate readily)
+
+   2 - volatile acidity: the amount of acetic acid in wine, which at too high of levels can lead to an unpleasant, vinegar taste
+
+   3 - citric acid: found in small quantities, citric acid can add 'freshness' and flavor to wines
+
+   4 - residual sugar: the amount of sugar remaining after fermentation stops, it's rare to find wines with less than 1 gram/liter and wines with greater than 45 grams/liter are considered sweet
+
+   5 - chlorides: the amount of salt in the wine
+
+   6 - free sulfur dioxide: the free form of SO2 exists in equilibrium between molecular SO2 (as a dissolved gas) and bisulfite ion; it prevents microbial growth and the oxidation of wine
+
+   7 - total sulfur dioxide: amount of free and bound forms of S02; in low concentrations, SO2 is mostly undetectable in wine, but at free SO2 concentrations over 50 ppm, SO2 becomes evident in the nose and taste of wine
+
+   8 - density: the density of water is close to that of water depending on the percent alcohol and sugar content
+
+   9 - pH: describes how acidic or basic a wine is on a scale from 0 (very acidic) to 14 (very basic); most wines are between 3-4 on the pH scale
+
+   10 - sulphates: a wine additive which can contribute to sulfur dioxide gas (S02) levels, wich acts as an antimicrobial and antioxidant
+
+   11 - alcohol: the percent alcohol content of the wine
+
+   Output variable (based on sensory data): 
+   12 - quality (score or 0 and 1)
+```
+
+# Part One:  In-Class
+
+*This section will be graded for completeness, not correctness.  Do your best in class, even if you can't figure out the answers right away.*
+
+## Exploring The Dataset
+
+Our dataset today contains only some of the **red wines** from this study. 
+
+How many wines were rated "bad"?  How many were rated "good"?
+
+
+```
+18 good wines, 63 bad ones
+```
+
+***
+
+We will begin by looking at a small subset of the wine data, containing the residual sugar and pH level of the studied wines.
+
+```{r}
+wine_sub <- wine %>%
+  select(quality, residual.sugar, pH) %>%
+  mutate(
+    quality = factor(quality)
+  )
+
+wine <- wine %>%
+  mutate(
+    quality = factor(quality)
+  )
+```
+
+Apply the function `ggpairs()` to your new subset to plot all the variable pairs.  
+
+
+```{r}
+ggpairs(wine_sub)
+```
+
+
+What can you say about this data based on the plot?
+
+```
+There are far more bad quality wines then good ones. Residual sugar doesn't seem to be that relevant in judging wine quality. The pH's for good quality wine seem to tend to be a little loweer than that of bad quality wine, but not by much. the distribution of pH's seem to be relatively normal, but in the case of residual sugar, the distribution is very rightly skewed. Residual sugar and pH doesn't seem to have much of a relationship.
+
+```
+
+## Checking Multivariate Normality
+
+Add to the following code chunk to produce a Normal Q-Q plots for pH as well as residual sugar.
+
+```{r}
+ggplot(wine_sub, aes(sample = residual.sugar)) + geom_qq() + ggtitle("QQ Plot of Residual Sugar")
+
+ggplot(wine_sub, aes(sample = pH)) + geom_qq() + ggtitle("QQ Plot of Residual pH")
+```
+
+Comment on these plots.  What do you conclude?
+
+```
+Looking at this QQ plot, the QQ plot for sugar looks curved whereas for pH it looks pretty linear. Thus we conclude that the pH comes from a normal distribution but the residual sugars come from a non-normal distribution.
+```
+
+
+Create a data matrix $Y$ for the two numeric variables `pH` and `residual.sugar`.  Then use the `mvn()` function from the MVN package to examine this data matrix.
+
+```{r}
+### YOUR CODE HERE ###
+Y <-(wine_sub[,-1])
+
+mvn(Y)
+```
+
+Is it reasonable to treat this data matrix as multivariate Normal?  Why or why not?
+
+```
+While pH looks normally distributed, with a relatively small kurtosis and skew, and fails to reject the Shapiro-Wilk's test's null hypothesis, which is that it is normally distributed, the same cannot be said of the residual sugar.
+
+The skew and especially the kurtosis of sugar is  very high. In addition it rejects the Shapiro-Wilk'test's s null hypothesis, which means there is sufficient reason to believe it is not normally distributed. For a data matrix to be multivariate normal, it must be made from a linear combination of normal distributions, which the residual.sugar column is not.
+
+Finally, the Mardia's skewness and kurtosis have extremely small p-values, so we reject the null hypothesis that this is multivariate normal.
+```
+
+## Practice with Multivariate Normality
+
+Suppose you are told that this data **is** from a multivariate Normal distribution.  Find the sample mean vector and sample covariance matrix. 
+
+```{r}
+### EDIT THIS CODE ###
+
+y_bar <- colMeans(Y)
+S_y <-cov(Y)
+
+```
+
+
+***
+
+Suppose it is hypothesized that on average for red wine, the residual sugar is equal to 80% of the pH.  Test this hypothesis.  Do **not** define a new variable in your dataset; instead, use your matrix $Y$ and your calculations above.  Be sure to state your hypotheses and conclusion - you may use R to find an exact p-value, or you may compare your result to a critical value of 2.
+
+*Hint: Define a new variable $W$ that is a linear combination of variables in $Y$.  What is the distribution of $W$?*
+
+```{r}
+
+a = as.matrix(c(1,-0.8 ))
+#linear combination of a
+W <- as.matrix(Y) %*% a 
+
+W_bar  <- y_bar %*% a
+
+S_w <- t(a)%*% S_y %*% a
+#standard error
+SE = sqrt((1/81+1/81)*S_w)
+#test statistic
+W_bar/SE
+
+```
+
+```
+We are conducting a t-test on a linear combination of the given variables to see if the population mean of the residual sugar is 0.8 that of the population mean of the pH. 
+
+Our null hypothesis is that the population mean of the residual sugar is 0.8 that of the population mean of the pH, or:
+
+Ho = 1(mean(residual.sugar))-0.8(mean(pH)) == 0
+
+Our alternative hypothesis is that the population mean of the residual sugar is not 0.8 that of the population mean of the pH, or:
+
+Ha = 1(mean(residual.sugar))-0.8(mean(pH)) =/= 0
+
+
+Using an alpha of 0.05, whose critical value is approximately 1.96 we fail to reject the null hypothesis, as our calculated t-statistic is -0.0983, whose absolute value is well below that of the critical value.
+
+```
+
+***
+
+
+## Testing Mean Vectors
+
+Suppose it is now hypothesized that "good" wines have a different residual sugar and pH than "bad" wines.  
+
+Calculate the individual mean vectors and covariance matrices for good wines and for bad wines.  Then calculate the pooled covariance matrix. 
+
+```{r}
+### YOUR CODE HERE ###
+
+good_wine <- wine_sub %>% 
+  filter(quality == 1) %>% 
+  select(-quality)%>%
+  as.matrix()
+bad_wine <- wine_sub %>% 
+  filter(quality == 0)%>% 
+  select(-quality)%>%
+  as.matrix()
+
+y_bar_1 = colMeans(good_wine)
+y_bar_2 = colMeans(bad_wine)
+
+S_1 = cov(good_wine)
+S_2 = cov(bad_wine)
+
+S_p = ((18-1)*S_1 + (63-1)*S_2 )/ (18+63-2)
+```
+
+Compare these to each other, and to the `S_y` you found above.  Do you think it makes sense to pool the covariance?
+
+```
+S_p looks relatively the same to S_y, slightly different but not by much, so it makes sense to pool the covariance.
+
+```
+
+Now find the generalized variance for each of these three covariance matrices (individual and pooled).  How do they compare?
+
+```{r}
+#What is M exactly?
+M <- (det(S_1)^(17/2)*det(S_2)^(62/2))/(det(S_p)^(18+63-2))
+```
+
+```
+Since M is incredibly large it doesn't make sense to pool.
+```
+
+
+***
+
+Calculate a T-squared statistic for this test, by using matrix algebra on your above calculations.
+
+```{r}
+#covariance of means ybar1 ybar2
+c1 = S_1/18 
+c2 = S_2/63
+
+#since it is unpooled
+
+sd = c1+ c2
+sdInv = solve(sd)
+
+y_means = y_bar_1 -y_bar_2
+
+t2 <- t(y_means)%*%sdInv%*%(y_means)
+```
+
+Why might we be comfortable performing a Hotelling's T-Squared test, even if we are not confident that the data is Multivariate Normal?
+
+```
+T^2 is 5.32
+
+Using the central limit theorem, if the sample size is large enough, we can assume normality from the data we collected, even if we are not confident our data is multivariate.
+```
+
+Now take a look at the function `hotelling.test()`.  Then run the code supplied below.
+
+```{r}
+#install.packages("Hotelling")
+library(Hotelling)
+
+htest <- hotelling.test(. ~ quality, data = wine_sub)
+htest
+htest$stats
+```
+
+Report these results.  What were the hypotheses?  What was the test statistic?  What do you conclude?
+
+```
+
+The null hypothesis is that the means for pH and residual sugars are the same for both qualities. The alternative hypothesis is that the means for the pH and residual sugars are not for both qualities.
+
+The test statistic which is from the F-distribution is 2.96
+The T^2 statistic is 5.99.
+
+The p-value is 0.05781.
+
+Using an alpha of 0.05, we fail to reject the null hypothesis.
+
+We cannot conclude using this test that the means for pH and residual sugars are not the same for both qualities. However, because the p-value is a little to close to the cut-off to my liking, I will not conclude that there is sufficient evidence that they are.
+```
+
+
+*Note: Since this test involved only a 2x2 matrix, you might want to consider using this data to practice doing $T^2$ tests by hand, and then compare your answers to the R output.*
+
+*** 
+## Follow-up: Specific differences
+
+We may wish to ask ourselves where, exactly, the differences in mean vectors lie.  Do good wines have different pH than bad wines?  Do they have different residual sugar?  Use R to perform individual two-sample t-tests for the two variables. Hint:  The function `t.test()` takes similar input as `hotelling.test()`
+
+```{r}
+t.test(pH ~ quality, data = wine_sub)
+t.test(residual.sugar ~ quality, data = wine_sub)
+```
+
+What do you conclude based on the individual t tests?
+
+```
+For pH, since the p-value is so low at 0.03,for an alpha of 0.05, we reject the null hypothesis in favor of the alternative hypothesis that the difference of means for pH between good and bad quality wine is not 0. There is sufficient evidence to believe the pH value is different accross both qualities of wine.
+
+For residual sugar, the p-value is pretty high at 0.8, so we fail to reject the null hypothesis that the difference mean residual sugars across both qualities of wine are 0, so we have some reason to believe that the mean sugar across both qualities of wine are the same.
+
+```
+
+Why did we run a Hotelling's T-squared first, rather than simply performing two separate t-tests?
+
+```
+Hotelling's T-squared test tests if there is a difference in the means between good and bad quality wines for the variables we are testing for. If there is a difference, and we fail to reject the null hypothesis with a very high p-value, there would not be much motivation to find a difference between the individual variables that contribute to a wine's taste, as failing to reject the null hypothesis with a high p-value is sufficient evidence to say that there is no difference between means of all the variables we are testing for between high and low quality wines.
+```
+
+***
+
+
+## YOUR TURN
+
+Congratulations!  You now own a vineyard!  Of course, your goal is produce only the best red wines.  Your chemists can control all the properties, but they need to be told which ones to focus their efforts on.
+
+Consider the full "wine" dataset. Perform a proper hypothesis test for all of the variables involved.  Make sure you justify all assumptions. Be sure your conclusion tells your chemists which specific chemical properties should be made higher, made lower, or ignored in their wine creation.
+
+
+*Note: While you are certainly welcome to answer this question using your knowledge from other advanced courses, you are not required to do so for full credit.  I am only looking for basic analylses and plot, accompanied by an accurate and clear interpretation.*
+
+Hint: below is some code I wrote for you to create a function called `ttest_all_vars`, to run all the t-tests at once.  You absolutely do **not** need to understand this function!  Simply run this code, and the example below it for pH and residual sugar.  You may use this function if you wish to make your process easier.
+
+```{r}
+ttest_all_vars <- function(data, response){
+  
+  d_sub <- data %>%
+    select(-response) 
+  
+  res <- d_sub %>%
+    map_df(~tidy(t.test(.x ~ data[,response]))) %>%
+    mutate(
+      Chemical.Property = names(d_sub),
+      observed.diff = estimate,
+      t.score = statistic
+    )
+  
+  res <- res %>% select(Chemical.Property, observed.diff, t.score, p.value)
+  
+  return(res)
+  
+}
+
+
+```
+
+
+```{r}
+ttest_all_vars(wine_sub, "quality")
+```
+```
+First we will conduct we run a Hotelling's T-squared test to see if there is a difference in means of the variables we are testing for between bad and good quality wine
+```
+```{r}
+htest2 <- hotelling.test(. ~ quality, data = wine)
+htest2
+htest2$stats
+```
+
+```
+Considering that the F test statistic (17.3) and the T^2 test statistic(218) are so high, and the p-value is extremely low, we have great reason to believe that there exists a difference of means in the variables we tested for between good and bad quality wines.
+```
+
+```
+Now we will conduct t-tests across all the variables to see which ones failed the t-test. If they failed the t-test, that means they rejected the null hypothesis that there is no difference in means for that variable for good or bad quality wine, in favor of the alternative hypothesis, that there is a difference between the means for this variable among good and bad quality wine.
+
+I will make the assumption that the wines have been sampled randomly, and that they come from a normal distribution (I am aware that this is rather unlikely given the results of previous tests, but I need to assume this to use this test, so let's just say the CLT says it is sufficiently large to assume a normal distribution of means). I am also going to assume an unequal variance of means.
+```
+
+```{r}
+alpha = 0.05
+relevant_vars <- ttest_all_vars(wine, "quality")%>%
+  filter(p.value<alpha)
+
+relevant_vars
+```
+```
+While this gives us the results, it doesn't tell us what should be higher or what should be lower. So to figure out if it was mean(bad quality) - mean(good quality), or vice versa, we will find the means of all the relevant variables
+```
+```{r}
+wine %>% group_by(quality) %>%
+  summarize_all("mean") %>%
+  select(-residual.sugar,-fixed.acidity,-free.sulfur.dioxide,-total.sulfur.dioxide)%>%
+  gather(key = "variable", value = "value",-quality)%>%
+  group_by(quality)%>%
+  ggplot(aes(x=variable,y=value,fill=quality))+geom_col(position = "dodge")+
+  ggtitle("Difference of Means in Relevant Chemical Properties")+
+  theme(axis.text.x = element_text(angle = -45, hjust = 0))
+```
+
+```
+Looking at this, it is easy to see that they subtracted the bad quality wine means from the good quality wine means. Thus is t-score value is below 0, we need to raise the value of that variable for a better wine, and if the t-score value is below 0, we need to lower the value of that variable for better quality wine. Knowing this, let's seperate the groups.
+```
+```
+Raise these chemical properties
+```
+```{r}
+raise_vars <- relevant_vars %>% 
+  filter(t.score<0)%>%select(Chemical.Property)
+
+raise_vars
+```
+```
+Lower these chemical properties
+```
+
+```{r}
+lower_vars <- relevant_vars %>% 
+  filter(t.score>0)%>%select(Chemical.Property)
+
+lower_vars
+```
+
+```
+Ignore these chemical properties
+```
+```{r}
+rel_var_vec <- relevant_vars %>% pull(Chemical.Property)
+ irrevelant_vars <- ttest_all_vars(wine, "quality") %>% filter(!(Chemical.Property %in% rel_var_vec))
+irrevelant_vars
+```
+
+

@@ -1,0 +1,150 @@
+---
+title: "MANOVA Demo"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(MASS)
+library(dplyr)
+library(knitr)
+library(heplots)
+
+n1 = 85
+n2 = 74
+n3 = 41
+
+sigma <- cbind(c(200, 15), c(15, 6))
+
+mu1 = c(1135, 20.5)
+mu2 = c(1351, 22.1)
+mu3 = c(1351, 22.1)
+
+set.seed(85)
+Y1 <- mvrnorm(n1, mu1, sigma)
+set.seed(74)
+Y2 <- mvrnorm(n2, mu2, sigma)
+set.seed(41)
+Y3 <- mvrnorm(n3, mu3, sigma)
+
+ybar1 = colMeans(Y1)
+ybar2 = colMeans(Y2)
+ybar3 = colMeans(Y3)
+
+S1 = cov(Y1)
+S2 = cov(Y2)
+S3 = cov(Y3)
+
+Y_all <- data.frame(round(rbind(Y1, Y2, Y3), 2))
+Lake <- c(rep("CSU-Bakersfield", n1), rep("Cal Poly", n2), rep("UCSB", n3))
+Y_all <- cbind(Lake, Y_all)
+names(Y_all) <- c("School", "SAT", "ACT")
+
+Y_all$In_State <- sample(c("In-State", "Out-of-State"), n1+n2+n3, replace = TRUE)
+```
+
+```{r}
+Y_all
+```
+
+```{r}
+mv.mod <- manova(cbind(SAT, ACT) ~ factor(School), data = Y_all)
+mv.sum <- summary(mv.mod, test = "Wilks")
+
+H = round(mv.sum$SS[[1]], 0)
+E = round(mv.sum$SS[[2]], 0)
+
+H
+E
+```
+
+
+```{r}
+boxM(cbind(SAT, ACT) ~ factor(School), data = Y_all)
+
+S1 = cov(Y1)
+S2 = cov(Y2)
+S3 = cov(Y3)
+
+Sp = ((n1 - 1)*S1 + (n2 - 1)*S2 + (n3 - 1)*S3)/(n1 + n2 + n3 - 3)
+
+M <- det(S1)^((n1-1)/2)*det(S2)^((n2-1)/2)*det(S3)^((n3-1)/2)/det(Sp)^((n1 + n2 + n3 - 3)/2)
+
+```
+
+
+```{r}
+
+#only valid with pool; manova
+mv.mod <- manova(cbind(SAT, ACT) ~ factor(School)*factor(In_State), data = Y_all)
+mv.sum <- summary(mv.mod, test = "Wilks")
+
+HA = round(mv.sum$SS[[1]], 0)
+HB = round(mv.sum$SS[[2]], 0)
+HAB = round(mv.sum$SS[[3]], 0)
+E = round(mv.sum$SS[[4]], 0)
+
+mv.sum
+```
+
+```{r}
+HA
+HB
+HAB
+E
+```
+
+
+```{r}
+boxM(cbind(SAT, ACT) ~ factor(School)*factor(In_State), data = Y_all)
+```
+
+* What is the null hypothesis?
+
+p-value high enough soo fail to reject normality
+
+
+two way manova:
+
+H0: = Sat/68 = ACT
+t-test with transformed variables linear combo of a =c (1/68 -1)
+
+H0: SAT independent of ACT
+wilks lamda test with SAT/ACT independet covar matrix vs current one
+ratio of determinant
+
+H0: Same test scores for in/out students
+hotellings t square
+assume normality MVN
+justify covariance matrices
+
+H0: Same test scores across school
+manova
+assume equal covars among groups
+random sample
+each group musgt have normality
+
+*H0 Test scores same regardlesss of school, in/out of state
+2 way manova
+ 6 mean vecs for each in/out school group
+ 
+j= school, k = in/out
+
+test stat lambda: |E|/ |E+HAB|
+y(1jk) = mu+ e(ijk)/ HAB VS E
+
+
+H0: should alpha/betta be 0? Ha vs E/HB vs E (dropping alpha/betta wont change either, but will change interacion)
+
+source of error: H group mean vs overall mean
+2: Ha()school, Hb(in/out), random noise E even after subgroiuping=,HAB equal dift subgroup mean AKA interactions\\\\\\, 
+
+//vecs
+yijk = nu + alphaj (school), Bk (inout) + gammajk + sigmaijk
+
+
+if p-value is large, we see no reason to keep that var

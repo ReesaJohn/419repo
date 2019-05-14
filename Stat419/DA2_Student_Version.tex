@@ -1,0 +1,715 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={DA 2: Characterizing Multivariate Data},
+            pdfauthor={Reesa John},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{DA 2: Characterizing Multivariate Data}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{Reesa John}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+    \date{}
+    \predate{}\postdate{}
+  
+
+\begin{document}
+\maketitle
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\section{Part Two: Numerical Summaries and
+Characterizations}\label{part-two-numerical-summaries-and-characterizations}
+
+Suppose through the miracle of time travel, you now work at US News and
+World Report in 1995. You would like to come up with a way to rank all
+the colleges, based only on the following variables: Average SAT Score,
+Average ACT Score, Acceptance Rate, Out-of-State Tuition, and Spending
+per student.
+
+Load and edit the data, if you have not already:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Read Data}
+\NormalTok{colleges =}\StringTok{ }\KeywordTok{read.csv}\NormalTok{(}\StringTok{'http://kbodwin.web.unc.edu/files/2016/09/tuition_final.csv'}\NormalTok{)}
+
+\CommentTok{# Adjust labels for later}
+
+\NormalTok{colleges <-}\StringTok{ }\NormalTok{colleges }\OperatorTok{%>%}\StringTok{ }\KeywordTok{mutate}\NormalTok{(}
+  \DataTypeTok{Name =} \KeywordTok{gsub}\NormalTok{(}\StringTok{"California State Univ. at"}\NormalTok{, }\StringTok{"CSU"}\NormalTok{, Name),}
+  \DataTypeTok{Name =} \KeywordTok{gsub}\NormalTok{(}\StringTok{"California State University at"}\NormalTok{, }\StringTok{"CSU"}\NormalTok{, Name),}
+  \DataTypeTok{Name =} \KeywordTok{gsub}\NormalTok{(}\StringTok{"California Polytechnic"}\NormalTok{, }\StringTok{"Cal Poly"}\NormalTok{, Name),}
+  \DataTypeTok{Name =} \KeywordTok{gsub}\NormalTok{(}\StringTok{"California Poly"}\NormalTok{, }\StringTok{"Cal Poly"}\NormalTok{, Name),}
+  \DataTypeTok{Name =} \KeywordTok{gsub}\NormalTok{(}\StringTok{"University of California at"}\NormalTok{, }\StringTok{"UC"}\NormalTok{, Name)}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+First, create a data matrix called \texttt{Y} which contains only the
+information we are interested in.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{### EDIT THIS CODE###}
+
+\NormalTok{Y <-}\StringTok{ }\NormalTok{colleges }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{Accpt.rate =}\NormalTok{ Accepted}\OperatorTok{/}\NormalTok{Applied )}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{select}\NormalTok{(Avg.SAT,Avg.ACT,Out.Tuition, Accpt.rate, Spending)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{na.omit}\NormalTok{()}
+\CommentTok{# I figured you would prefer I omitted schools with NAs}
+\NormalTok{Y <-}\StringTok{ }\KeywordTok{as.matrix}\NormalTok{(Y)}
+\KeywordTok{dim}\NormalTok{(Y)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 470   5
+\end{verbatim}
+
+\begin{itemize}
+\tightlist
+\item
+  What is the dimension of \texttt{Y}?
+\end{itemize}
+
+\begin{verbatim}
+A 470 x 5 matrix.
+\end{verbatim}
+
+Next, find the mean and variances of each variable in \texttt{Y}, and
+save them as vectors. You may wish to use the function \texttt{apply()}
+for this task.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{### EDIT THIS CODE###}
+\NormalTok{means_Y <-}\StringTok{ }\KeywordTok{apply}\NormalTok{(Y,}\DecValTok{2}\NormalTok{,mean)}
+
+\NormalTok{vars_Y <-}\StringTok{ }\KeywordTok{apply}\NormalTok{(Y,}\DecValTok{2}\NormalTok{,var)}
+\end{Highlighting}
+\end{Shaded}
+
+Now calculate the full covariance matrix of \texttt{Y}. Do this in two
+ways: First, use the function \texttt{cov()} to automatically find the
+matrix. Then, use what you know about matrix multiplication to construct
+the covariance from scratch. Check that your two answers are the same.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Find Covariance matrix}
+\NormalTok{S <-}\StringTok{ }\KeywordTok{cov}\NormalTok{(Y)}
+
+\NormalTok{Ybar =}\StringTok{ }\KeywordTok{matrix}\NormalTok{(means_Y,}\DataTypeTok{nrow=}\DecValTok{470}\NormalTok{,}\DataTypeTok{ncol=}\KeywordTok{length}\NormalTok{(means_Y),}\DataTypeTok{byrow=}\OtherTok{TRUE}\NormalTok{)}
+
+\NormalTok{df =}\StringTok{ }\DecValTok{470}\OperatorTok{-}\DecValTok{1} \CommentTok{#why is the df this?}
+
+\NormalTok{tempY =}\StringTok{ }\NormalTok{Y}\OperatorTok{-}\NormalTok{Ybar}
+
+\NormalTok{myCov =}\StringTok{ }\NormalTok{(}\KeywordTok{t}\NormalTok{(tempY)}\OperatorTok{%*%}\NormalTok{(tempY))}\OperatorTok{*}\NormalTok{(}\DecValTok{1}\OperatorTok{/}\NormalTok{df)}
+
+\NormalTok{myCov}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##               Avg.SAT  Avg.ACT Out.Tuition Accpt.rate Spending
+## Avg.SAT      13992.29  286.261    2.75e+05    -5.9141   343726
+## Avg.ACT        286.26    7.123    6.24e+03    -0.1120     7424
+## Out.Tuition 275208.90 6238.476    1.55e+07   -96.5730 13139938
+## Accpt.rate      -5.91   -0.112   -9.66e+01     0.0196     -228
+## Spending    343725.63 7423.957    1.31e+07  -227.5726 24235385
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{S}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##               Avg.SAT  Avg.ACT Out.Tuition Accpt.rate Spending
+## Avg.SAT      13992.29  286.261    2.75e+05    -5.9141   343726
+## Avg.ACT        286.26    7.123    6.24e+03    -0.1120     7424
+## Out.Tuition 275208.90 6238.476    1.55e+07   -96.5730 13139938
+## Accpt.rate      -5.91   -0.112   -9.66e+01     0.0196     -228
+## Spending    343725.63 7423.957    1.31e+07  -227.5726 24235385
+\end{verbatim}
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+You are considering three possible schemes for scoring the schools:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \emph{Equal weights}: You will weigh all 5 variables as equally
+  important.
+\item
+  \emph{Scores only}: You will only consider the SAT and ACT scores in
+  your ranking.
+\item
+  \emph{Complex formula}: 20\% SAT Score, 20\% ACT Score, 10\%
+  Acceptance Rate, 25\% Tuition, 25\% Spending. (This is approximately
+  the actual weights that US News gives to these variables; however,
+  they also include many more variables that we do not have access to
+  data for.)
+\end{enumerate}
+
+Make a matrix \texttt{A}, which should have dimension 3 by 5, that
+contains the weights for the three ranking schemes proposed.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{###  EDIT THIS CODE }\AlertTok{###}
+
+\NormalTok{s1 =}\StringTok{ }\KeywordTok{c}\NormalTok{(}\FloatTok{0.2}\NormalTok{,}\FloatTok{0.2}\NormalTok{,}\FloatTok{0.2}\NormalTok{,}\FloatTok{0.2}\NormalTok{,}\FloatTok{0.2}\NormalTok{)}
+\NormalTok{s2 =}\StringTok{ }\KeywordTok{c}\NormalTok{(}\FloatTok{0.5}\NormalTok{,}\FloatTok{0.5}\NormalTok{,}\FloatTok{0.0}\NormalTok{,}\FloatTok{0.0}\NormalTok{,}\FloatTok{0.0}\NormalTok{)}
+\NormalTok{s3 =}\StringTok{ }\KeywordTok{c}\NormalTok{(}\FloatTok{0.2}\NormalTok{,}\FloatTok{0.2}\NormalTok{,}\FloatTok{0.1}\NormalTok{,}\FloatTok{0.25}\NormalTok{,}\FloatTok{0.25}\NormalTok{)}
+
+\NormalTok{A <-}\StringTok{ }\KeywordTok{as.matrix}\NormalTok{(}\KeywordTok{rbind}\NormalTok{(s1,s2,s3))}
+\end{Highlighting}
+\end{Shaded}
+
+Note that our variables of interest are on different scales; an average
+SAT score is around 1000, while an average acceptance rate is around
+0.75. To combine these, we want our measurements to be ``unitless''.
+Make a new data matrix where each variable has been standardized by its
+sample mean and variance. Then calculate the mean vector and covariance
+matrix for this adjusted data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{### EDIT THIS CODE }\AlertTok{###}
+
+\NormalTok{sdrow <-}\StringTok{ }\KeywordTok{sapply}\NormalTok{(vars_Y,sqrt)}
+\NormalTok{sdrow <-}\StringTok{ }\KeywordTok{matrix}\NormalTok{(sdrow,}\DataTypeTok{nrow=}\DecValTok{470}\NormalTok{,}\DataTypeTok{ncol=}\KeywordTok{length}\NormalTok{(sdrow),}\DataTypeTok{byrow=}\OtherTok{TRUE}\NormalTok{)}
+
+\NormalTok{Y_std <-}\StringTok{ }\NormalTok{(Y}\OperatorTok{-}\NormalTok{Ybar)}\OperatorTok{/}\NormalTok{sdrow}
+
+\NormalTok{y_bar_std <-}\StringTok{  }\KeywordTok{apply}\NormalTok{(Y_std,}\DecValTok{2}\NormalTok{,mean)}
+\NormalTok{S <-}\StringTok{ }\KeywordTok{cov}\NormalTok{(Y_std)}
+
+\NormalTok{y_bar_std}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     Avg.SAT     Avg.ACT Out.Tuition  Accpt.rate    Spending 
+##    8.56e-17    1.01e-16   -2.22e-17    9.45e-17    1.73e-16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{S}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##             Avg.SAT Avg.ACT Out.Tuition Accpt.rate Spending
+## Avg.SAT       1.000   0.907       0.591     -0.357    0.590
+## Avg.ACT       0.907   1.000       0.594     -0.300    0.565
+## Out.Tuition   0.591   0.594       1.000     -0.175    0.678
+## Accpt.rate   -0.357  -0.300      -0.175      1.000   -0.330
+## Spending      0.590   0.565       0.678     -0.330    1.000
+\end{verbatim}
+
+\begin{itemize}
+\tightlist
+\item
+  What values are in y-bar? What values are on the diagonal of S? Why do
+  these make sense?
+\end{itemize}
+
+\begin{verbatim}
+I printed out the values of y-bar, which are all essentially 0. The diagonals on S are all 1 because the standard deviation of a standardized variable is 1, and thus the the variance which is square of the standard deviation is also 1. Since we standardized it to have a mean of 0 and a standard deviation of 1, this makes sense.
+\end{verbatim}
+
+Use an appropriate matrix operation to find the mean score for each of
+the three ranking schemes.
+
+we have a 3 rows of 470 stuff, and we want 3 means, 1 for each row.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{### EDIT THIS CODE }\AlertTok{###}
+\NormalTok{mean_scores <-}\KeywordTok{rowMeans}\NormalTok{(A}\OperatorTok{%*%}\KeywordTok{t}\NormalTok{(Y_std))}
+\NormalTok{mean_scores}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##       s1       s2       s3 
+## 8.69e-17 9.82e-17 1.01e-16
+\end{verbatim}
+
+Interpret these mean scores.
+
+\begin{verbatim}
+The means of all three variables are essentially 0. That means for all three ranking schemes, the average score with standardized variables is 0. On average, most schools scores are in the middle.
+\end{verbatim}
+
+Use an appropriate matrix operation to find the variances of the three
+ranking schemes.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{### EDIT THIS CODE }\AlertTok{###}
+\NormalTok{rankS <-}\StringTok{ }\NormalTok{(A)}\OperatorTok{%*%}\NormalTok{S}\OperatorTok{%*%}\KeywordTok{t}\NormalTok{(A)}
+\NormalTok{rankS}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##       s1    s2    s3
+## s1 0.421 0.550 0.391
+## s2 0.550 0.953 0.503
+## s3 0.391 0.503 0.369
+\end{verbatim}
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+Use an appropriate matrix operation to find the scores in each of the
+three schemes for all the colleges in our dataset (except those with
+missing data). Note that this should be an \(n\) by 3 matrix, where
+columns represent the three scores.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{### EDIT THIS CODE }\AlertTok{###}
+
+\NormalTok{scores <-}\StringTok{ }\NormalTok{Y_std}\OperatorTok{%*%}\KeywordTok{t}\NormalTok{(A)}
+\end{Highlighting}
+\end{Shaded}
+
+Convert your scores matrix to a matrix of ranks; that is, assign each
+college a number from 1 to \(n\) based on their score, where 1 is the
+most ``desirable'' college.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{### EDIT THIS CODE }\AlertTok{###}
+
+\NormalTok{s1 <-}\StringTok{ }\KeywordTok{rank}\NormalTok{(}\OperatorTok{-}\NormalTok{scores[,}\DecValTok{1}\NormalTok{],}\DataTypeTok{ties.method =} \StringTok{"min"}\NormalTok{)}
+\NormalTok{s2 <-}\StringTok{ }\KeywordTok{rank}\NormalTok{(}\OperatorTok{-}\NormalTok{scores[,}\DecValTok{2}\NormalTok{],}\DataTypeTok{ties.method =} \StringTok{"min"}\NormalTok{)}
+\NormalTok{s3 <-}\StringTok{ }\KeywordTok{rank}\NormalTok{(}\OperatorTok{-}\NormalTok{scores[,}\DecValTok{3}\NormalTok{],}\DataTypeTok{ties.method =} \StringTok{"min"}\NormalTok{)}
+
+\NormalTok{ranks <-}\StringTok{ }\NormalTok{colleges }\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{Accpt.rate =}\NormalTok{ Accepted}\OperatorTok{/}\NormalTok{Applied )}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{select}\NormalTok{(Name,Avg.SAT,Avg.ACT,Out.Tuition, Accpt.rate, Spending)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{na.omit}\NormalTok{()}\OperatorTok{%>%}\KeywordTok{select}\NormalTok{(Name)}
+
+\NormalTok{ranks <-}\StringTok{ }\KeywordTok{cbind}\NormalTok{(ranks,s1,s2,s3)}
+\end{Highlighting}
+\end{Shaded}
+
+What are the top 10 ranked colleges for each scheme? Which scheme do you
+like best, based on this?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{### Make use of this code to find your answers }\AlertTok{###}
+\NormalTok{ranks }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(s1 }\OperatorTok{<=}\StringTok{ }\DecValTok{10}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{arrange}\NormalTok{(s1)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{select}\NormalTok{(Name)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                     Name
+## 1               Johns Hopkins University
+## 2  Massachusetts Institute of Technology
+## 3                     Antioch University
+## 4                    Stanford University
+## 5             Carnegie Mellon University
+## 6                       Emory University
+## 7                        Duke University
+## 8                           Reed College
+## 9                  Vanderbilt University
+## 10                        Pomona College
+\end{verbatim}
+
+\begin{verbatim}
+This is for scheme 1.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ranks }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(s2 }\OperatorTok{<=}\StringTok{ }\DecValTok{10}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{arrange}\NormalTok{(s2)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{select}\NormalTok{(Name)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                     Name
+## 1                    Stanford University
+## 2  Massachusetts Institute of Technology
+## 3                         Pomona College
+## 4                        Duke University
+## 5               Johns Hopkins University
+## 6                    Wesleyan University
+## 7             University of Pennsylvania
+## 8                Northwestern University
+## 9                       Brown University
+## 10   Rose-Hulman Institute of Technology
+\end{verbatim}
+
+\begin{verbatim}
+This is for scheme 2.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ranks }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(s3 }\OperatorTok{<=}\StringTok{ }\DecValTok{10}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{arrange}\NormalTok{(s3)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{select}\NormalTok{(Name)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                     Name
+## 1               Johns Hopkins University
+## 2                     Antioch University
+## 3  Massachusetts Institute of Technology
+## 4                    Stanford University
+## 5             Carnegie Mellon University
+## 6                       Emory University
+## 7                  Vanderbilt University
+## 8                       Grinnell College
+## 9                Northwestern University
+## 10            University of Pennsylvania
+\end{verbatim}
+
+\begin{verbatim}
+This is for scheme 3.
+\end{verbatim}
+
+\begin{verbatim}
+I think overall I prefer scheme 3 the most since it considers both test scores but is a little more focused on acceptance rate and spending per student, which is also pretty important in ranking schools in my opinion. The only thing I have an isssue is that they consider out of state tuition at all, since I don't think it means too much, but even then it is what is given the lowest weight.
+\end{verbatim}
+
+Where does Cal Poly rank for each scheme?
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{ranks }\OperatorTok{%>%}\StringTok{ }\KeywordTok{filter}\NormalTok{(Name }\OperatorTok{==}\StringTok{ "Cal Poly-San Luis"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                Name  s1  s2  s3
+## 1 Cal Poly-San Luis 401 260 416
+\end{verbatim}
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\subsection{Your turn}\label{your-turn}
+
+Choose one or more of the ranking schemes. Find an interesting insight
+into college rankings based on this scheme, by studying the relationship
+between the ranks and at least one of the variables that we did
+\emph{not} include in the ranking scheme. Support your observation with
+plots and numerical summaries.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{colleges_}\DecValTok{2}\NormalTok{ <-}\StringTok{ }\NormalTok{colleges}\OperatorTok{%>%}\StringTok{ }
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{Accpt.rate =}\NormalTok{ Accepted}\OperatorTok{/}\NormalTok{Applied )}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(}\OperatorTok{!}\KeywordTok{is.na}\NormalTok{(Avg.SAT))}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(}\OperatorTok{!}\KeywordTok{is.na}\NormalTok{(Avg.ACT))}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(}\OperatorTok{!}\KeywordTok{is.na}\NormalTok{(Accpt.rate))}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(}\OperatorTok{!}\KeywordTok{is.na}\NormalTok{(Out.Tuition))}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(}\OperatorTok{!}\KeywordTok{is.na}\NormalTok{(Spending))}
+
+\NormalTok{colleges_}\DecValTok{2}\NormalTok{ <-}\StringTok{ }\KeywordTok{cbind}\NormalTok{(colleges_}\DecValTok{2}\NormalTok{,s1,s2,s3)}
+
+\NormalTok{colleges_}\DecValTok{2}\NormalTok{ <-}\StringTok{ }\NormalTok{colleges_}\DecValTok{2} \OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}
+    \DataTypeTok{rank1 =} \KeywordTok{case_when}\NormalTok{(}
+      
+\NormalTok{      s1 }\OperatorTok{<=}\StringTok{ }\DecValTok{47}  \OperatorTok{~}\StringTok{ "1-47"}\NormalTok{,}
+\NormalTok{      s1 }\OperatorTok{>}\StringTok{ }\DecValTok{47}  \OperatorTok{&}\StringTok{ }\NormalTok{s1}\OperatorTok{<=}\StringTok{ }\DecValTok{94} \OperatorTok{~}\StringTok{ "48-94"}\NormalTok{,}
+\NormalTok{      s1 }\OperatorTok{>}\StringTok{ }\DecValTok{94}  \OperatorTok{&}\StringTok{ }\NormalTok{s1}\OperatorTok{<=}\StringTok{ }\DecValTok{141} \OperatorTok{~}\StringTok{ "95-141"}\NormalTok{,}
+\NormalTok{      s1 }\OperatorTok{>}\StringTok{ }\DecValTok{141} \OperatorTok{&}\StringTok{ }\NormalTok{s1}\OperatorTok{<=}\StringTok{ }\DecValTok{188} \OperatorTok{~}\StringTok{ "142-188"}\NormalTok{,}
+\NormalTok{      s1 }\OperatorTok{>}\StringTok{ }\DecValTok{188} \OperatorTok{&}\StringTok{ }\NormalTok{s1}\OperatorTok{<=}\StringTok{ }\DecValTok{235} \OperatorTok{~}\StringTok{ "189-235"}\NormalTok{,}
+\NormalTok{      s1 }\OperatorTok{>}\StringTok{ }\DecValTok{235} \OperatorTok{&}\StringTok{ }\NormalTok{s1}\OperatorTok{<=}\StringTok{ }\DecValTok{282} \OperatorTok{~}\StringTok{ "236-282"}\NormalTok{,}
+\NormalTok{      s1 }\OperatorTok{>}\StringTok{ }\DecValTok{282} \OperatorTok{&}\StringTok{ }\NormalTok{s1}\OperatorTok{<=}\StringTok{ }\DecValTok{329} \OperatorTok{~}\StringTok{ "283-329"}\NormalTok{,}
+\NormalTok{      s1 }\OperatorTok{>}\StringTok{ }\DecValTok{329} \OperatorTok{&}\StringTok{ }\NormalTok{s1}\OperatorTok{<=}\StringTok{ }\DecValTok{376} \OperatorTok{~}\StringTok{ "330-376"}\NormalTok{,}
+\NormalTok{      s1 }\OperatorTok{>}\StringTok{ }\DecValTok{376} \OperatorTok{&}\StringTok{ }\NormalTok{s1}\OperatorTok{<=}\StringTok{ }\DecValTok{423} \OperatorTok{~}\StringTok{ "377-423"}\NormalTok{,}
+      \OtherTok{TRUE}                \OperatorTok{~}\StringTok{ "424-470"}
+\NormalTok{    ),}
+    \DataTypeTok{rank2 =} \KeywordTok{case_when}\NormalTok{(}
+      
+\NormalTok{      s2 }\OperatorTok{<=}\StringTok{ }\DecValTok{47}  \OperatorTok{~}\StringTok{ "1-47"}\NormalTok{,}
+\NormalTok{      s2 }\OperatorTok{>}\StringTok{ }\DecValTok{47}  \OperatorTok{&}\StringTok{ }\NormalTok{s2}\OperatorTok{<=}\StringTok{ }\DecValTok{94} \OperatorTok{~}\StringTok{ "48-94"}\NormalTok{,}
+\NormalTok{      s2 }\OperatorTok{>}\StringTok{ }\DecValTok{94}  \OperatorTok{&}\StringTok{ }\NormalTok{s2}\OperatorTok{<=}\StringTok{ }\DecValTok{141} \OperatorTok{~}\StringTok{ "95-141"}\NormalTok{,}
+\NormalTok{      s2 }\OperatorTok{>}\StringTok{ }\DecValTok{141} \OperatorTok{&}\StringTok{ }\NormalTok{s2}\OperatorTok{<=}\StringTok{ }\DecValTok{188} \OperatorTok{~}\StringTok{ "142-188"}\NormalTok{,}
+\NormalTok{      s2 }\OperatorTok{>}\StringTok{ }\DecValTok{188} \OperatorTok{&}\StringTok{ }\NormalTok{s2}\OperatorTok{<=}\StringTok{ }\DecValTok{235} \OperatorTok{~}\StringTok{ "189-235"}\NormalTok{,}
+\NormalTok{      s2 }\OperatorTok{>}\StringTok{ }\DecValTok{235} \OperatorTok{&}\StringTok{ }\NormalTok{s2}\OperatorTok{<=}\StringTok{ }\DecValTok{282} \OperatorTok{~}\StringTok{ "236-282"}\NormalTok{,}
+\NormalTok{      s2 }\OperatorTok{>}\StringTok{ }\DecValTok{282} \OperatorTok{&}\StringTok{ }\NormalTok{s2}\OperatorTok{<=}\StringTok{ }\DecValTok{329} \OperatorTok{~}\StringTok{ "283-329"}\NormalTok{,}
+\NormalTok{      s2 }\OperatorTok{>}\StringTok{ }\DecValTok{329} \OperatorTok{&}\StringTok{ }\NormalTok{s2}\OperatorTok{<=}\StringTok{ }\DecValTok{376} \OperatorTok{~}\StringTok{ "330-376"}\NormalTok{,}
+\NormalTok{      s2 }\OperatorTok{>}\StringTok{ }\DecValTok{376} \OperatorTok{&}\StringTok{ }\NormalTok{s2}\OperatorTok{<=}\StringTok{ }\DecValTok{423} \OperatorTok{~}\StringTok{ "377-423"}\NormalTok{,}
+      \OtherTok{TRUE}                \OperatorTok{~}\StringTok{ "424-470"}
+\NormalTok{    ),}
+    \DataTypeTok{rank3 =} \KeywordTok{case_when}\NormalTok{(}
+      
+\NormalTok{      s3 }\OperatorTok{<=}\StringTok{ }\DecValTok{47}  \OperatorTok{~}\StringTok{ "1-47"}\NormalTok{,}
+\NormalTok{      s3 }\OperatorTok{>}\StringTok{ }\DecValTok{47}  \OperatorTok{&}\StringTok{ }\NormalTok{s3}\OperatorTok{<=}\StringTok{ }\DecValTok{94} \OperatorTok{~}\StringTok{ "48-94"}\NormalTok{,}
+\NormalTok{      s3 }\OperatorTok{>}\StringTok{ }\DecValTok{94}  \OperatorTok{&}\StringTok{ }\NormalTok{s3}\OperatorTok{<=}\StringTok{ }\DecValTok{141} \OperatorTok{~}\StringTok{ "95-141"}\NormalTok{,}
+\NormalTok{      s3 }\OperatorTok{>}\StringTok{ }\DecValTok{141} \OperatorTok{&}\StringTok{ }\NormalTok{s3}\OperatorTok{<=}\StringTok{ }\DecValTok{188} \OperatorTok{~}\StringTok{ "142-188"}\NormalTok{,}
+\NormalTok{      s3 }\OperatorTok{>}\StringTok{ }\DecValTok{188} \OperatorTok{&}\StringTok{ }\NormalTok{s3}\OperatorTok{<=}\StringTok{ }\DecValTok{235} \OperatorTok{~}\StringTok{ "189-235"}\NormalTok{,}
+\NormalTok{      s3 }\OperatorTok{>}\StringTok{ }\DecValTok{235} \OperatorTok{&}\StringTok{ }\NormalTok{s3}\OperatorTok{<=}\StringTok{ }\DecValTok{282} \OperatorTok{~}\StringTok{ "236-282"}\NormalTok{,}
+\NormalTok{      s3 }\OperatorTok{>}\StringTok{ }\DecValTok{282} \OperatorTok{&}\StringTok{ }\NormalTok{s3}\OperatorTok{<=}\StringTok{ }\DecValTok{329} \OperatorTok{~}\StringTok{ "283-329"}\NormalTok{,}
+\NormalTok{      s3 }\OperatorTok{>}\StringTok{ }\DecValTok{329} \OperatorTok{&}\StringTok{ }\NormalTok{s3}\OperatorTok{<=}\StringTok{ }\DecValTok{376} \OperatorTok{~}\StringTok{ "330-376"}\NormalTok{,}
+\NormalTok{      s3 }\OperatorTok{>}\StringTok{ }\DecValTok{376} \OperatorTok{&}\StringTok{ }\NormalTok{s3}\OperatorTok{<=}\StringTok{ }\DecValTok{423} \OperatorTok{~}\StringTok{ "377-423"}\NormalTok{,}
+      \OtherTok{TRUE}                \OperatorTok{~}\StringTok{ "424-470"}
+\NormalTok{    )}
+    
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+I have chosen to create 10 groupings for each rank based on how high in
+rank they are for each.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{colleges_}\DecValTok{2} \OperatorTok{%>%}
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(rank1)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{na.omit}\NormalTok{()}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{summarize}\NormalTok{(}\DataTypeTok{Applied =} \KeywordTok{mean}\NormalTok{(Applied))}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{arrange}\NormalTok{(}\KeywordTok{desc}\NormalTok{(Applied))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 10 x 2
+##    rank1   Applied
+##    <chr>     <dbl>
+##  1 1-47      4880.
+##  2 142-188   3657.
+##  3 377-423   2869 
+##  4 236-282   2766.
+##  5 330-376   2627.
+##  6 95-141    2555.
+##  7 424-470   2390.
+##  8 189-235   2318.
+##  9 48-94     1890.
+## 10 283-329   1846.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{colleges_}\DecValTok{2} \OperatorTok{%>%}
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(rank1)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{na.omit}\NormalTok{()}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{summarize}\NormalTok{(}\DataTypeTok{Applied =} \KeywordTok{mean}\NormalTok{(Applied))}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{rank1,}\DataTypeTok{y=}\NormalTok{Applied, }\DataTypeTok{fill =}\NormalTok{ rank1))}\OperatorTok{+}\StringTok{ }\KeywordTok{geom_col}\NormalTok{()}\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.text.x=}\KeywordTok{element_text}\NormalTok{(}\DataTypeTok{angle=}\DecValTok{45}\NormalTok{,}\DataTypeTok{hjust=}\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{DA2_Student_Version_files/figure-latex/unnamed-chunk-18-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{colleges_}\DecValTok{2} \OperatorTok{%>%}
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(rank1)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{na.omit}\NormalTok{()}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{summarize}\NormalTok{(}\DataTypeTok{Applied =} \KeywordTok{mean}\NormalTok{(Applied))}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{arrange}\NormalTok{(}\KeywordTok{desc}\NormalTok{(Applied))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 10 x 2
+##    rank1   Applied
+##    <chr>     <dbl>
+##  1 1-47      4880.
+##  2 142-188   3657.
+##  3 377-423   2869 
+##  4 236-282   2766.
+##  5 330-376   2627.
+##  6 95-141    2555.
+##  7 424-470   2390.
+##  8 189-235   2318.
+##  9 48-94     1890.
+## 10 283-329   1846.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{colleges_}\DecValTok{2} \OperatorTok{%>%}
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(rank2)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{na.omit}\NormalTok{()}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{summarize}\NormalTok{(}\DataTypeTok{Applied =} \KeywordTok{mean}\NormalTok{(Applied))}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{rank2,}\DataTypeTok{y=}\NormalTok{Applied, }\DataTypeTok{fill =}\NormalTok{ rank2))}\OperatorTok{+}\StringTok{ }\KeywordTok{geom_col}\NormalTok{()}\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.text.x=}\KeywordTok{element_text}\NormalTok{(}\DataTypeTok{angle=}\DecValTok{45}\NormalTok{,}\DataTypeTok{hjust=}\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{DA2_Student_Version_files/figure-latex/unnamed-chunk-20-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{colleges_}\DecValTok{2} \OperatorTok{%>%}
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(rank1)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{na.omit}\NormalTok{()}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{summarize}\NormalTok{(}\DataTypeTok{Applied =} \KeywordTok{mean}\NormalTok{(Applied))}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{arrange}\NormalTok{(}\KeywordTok{desc}\NormalTok{(Applied))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 10 x 2
+##    rank1   Applied
+##    <chr>     <dbl>
+##  1 1-47      4880.
+##  2 142-188   3657.
+##  3 377-423   2869 
+##  4 236-282   2766.
+##  5 330-376   2627.
+##  6 95-141    2555.
+##  7 424-470   2390.
+##  8 189-235   2318.
+##  9 48-94     1890.
+## 10 283-329   1846.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{colleges_}\DecValTok{2} \OperatorTok{%>%}
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(rank3)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{na.omit}\NormalTok{()}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{summarize}\NormalTok{(}\DataTypeTok{Applied =} \KeywordTok{mean}\NormalTok{(Applied))}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x=}\NormalTok{rank3,}\DataTypeTok{y=}\NormalTok{Applied, }\DataTypeTok{fill =}\NormalTok{ rank3))}\OperatorTok{+}\StringTok{ }\KeywordTok{geom_col}\NormalTok{()}\OperatorTok{+}
+\StringTok{  }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.text.x=}\KeywordTok{element_text}\NormalTok{(}\DataTypeTok{angle=}\DecValTok{45}\NormalTok{,}\DataTypeTok{hjust=}\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{DA2_Student_Version_files/figure-latex/unnamed-chunk-22-1.pdf}
+
+`For all three, it is clear from both the numerical summary and the
+graphs that the mean number of applications for the top 47 in all 3
+types of rankings. Suprisingly, the lowest ranked schooles tend to be in
+the middle of the pack in terms of applications. And for all three, the
+top 48-94 schools tended to be 2nd to last in terms of applications.
+
+
+\end{document}

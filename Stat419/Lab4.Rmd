@@ -1,0 +1,301 @@
+---
+title: 'Lab 5: Testing Covariance Matrices and MANOVA'
+author: "Reesa John "
+output:
+  html_document: default
+---
+
+```{r, include = FALSE}
+## IGNORE THIS
+knitr::opts_chunk$set(error = TRUE) 
+options(digits=3)
+library(tidyverse)
+library(heplots)  ## this one is new!
+library(Hotelling)
+```
+
+# The Data
+
+Today's dataset is taken from a survey of 84 Cal Poly students.  The students were asked how many speeding tickets they had received in their lives, the fastest speed they had ever driven, and the number of hours per week they spend studying.
+
+Run the code below to load the data.
+
+
+```{r}
+
+dat <- read.csv("https://www.dropbox.com/s/vb85kbwqv5o8lia/Subset%20S2010data.TXT?dl=1", sep = "")
+
+```
+
+## Checking the data ahead of time
+
+Take a look at the data, using whatever R functions you prefer.  Do you see any possible issues?  Why might these present a problem to our analyses?
+
+```{r}
+summary(dat)
+head(dat)
+```
+
+
+```
+Gender is not a factor, and there seems to be a few NA's scattered among columns. In addition, there is only one graduate student, so we can't say anything about him, so if we do anything relating to school year, we should take the graduate student out of the equation.
+```
+
+Modify the code below to drop the problematic rows of data.
+
+```{r}
+dat <- dat %>% 
+  na.omit()%>%
+  mutate(
+    Gender = as.factor(Gender),
+    Year = as.factor(Year)
+  )%>%
+  filter(Year!="G")
+  
+summary(dat)
+```
+
+# Box's M-Test
+
+
+Consider testing the hypothesis "Male-idenfiying students are equally as responsible as female-identifying students."
+
+Perform the appropriate test in R for this hypothesis.
+
+
+```{r}
+hotDat <- dat %>% select(-Year)
+
+htest <- hotelling.test(. ~Gender, hotDat)
+htest
+
+```
+
+```
+Our null hypothesis is that the population mean for study hours, speeding tickets, fast driving is the same between both male and female identifying students.
+Our alternate hypothesis is that the population mean for study hours, speeding tickets, fast driving is not the same between both male and female identifying students.
+
+Our p-value for this test is 0.0004336, which is well below an alpha of 0.05. We reject with 95% confidence that the the population mean for study hours, speeding tickets, fast driving is the same between both male and female identifying students. If responsibility could be determined with study hours, speeding tickets, and fast driving, we have evidence that male-idenfiying students are not equally as responsible as female-identifying students (though we do not know who is more responsible).
+```
+
+The test above relied on the assumption that the covariance matrices were the same for all populations.  Express this assumption as a null hypothesis, in both symbols and words.
+
+```
+Our null hypothesis is that the covariance matrices for study hours, speeding tickets, and fast driving tickets are the same for both male and female identifying  populations.
+
+```
+
+Calculate the $M$ statistic for this test.  What do you expect it to be under the null?  What does the actual value suggest to you?
+
+```{r}
+gen0 <- hotDat %>% 
+  filter(Gender == 0)%>%
+  dplyr::select(-Gender)%>%
+  as.matrix()
+
+gen1 <- hotDat %>% 
+  filter(Gender == 1)%>%
+  dplyr::select(-Gender)%>%
+  as.matrix()
+
+
+n1 = 46 #0
+n2 = 35 #1
+
+S1 = cov(gen0)
+S2 = cov(gen1)
+
+Sp = ((n1-1)*(S1))+((n2-1)*(S2))/(n1+n2-2)
+
+M <- (((det(S1))^((n1-1)/2))*((det(S2))^((n2-1)/2)))/((det(Sp))^((n1 + n2 -2)/2))
+
+M
+```
+
+```
+The M statistic I calculated is 0. The null hypothesis for this test is that the covariance matrices for both male and female identifying students are the same. Since the M statistic is so far away from 1, this implies that the covariance matrices for study hours, speeding tickets, and fast driving is not the same between both male and female identifying students.
+```
+
+Run the following code to perform the full hypothesis test.  What do you conclude?
+
+
+```{r}
+#install.packages("heplots")
+library(heplots)
+
+boxM(cbind(StudyHours, SpeedTickets, FastDrive) ~ factor(Year), data = dat)
+
+```
+
+```
+As the p-value is so low, this implies that the covariance matrices for study hours, speeding tickets, and fast driving is not the same between both male and female identifying students.
+```
+
+# Testing Covariance Matrices
+
+Suppose we wish further understand the relationship between max driving speed, number of speeding tickets, and hours studied.  
+
+
+## A specific null
+
+Run the following code, which will show you $\Sigma_0$, a proposed covariance matrix between these three variables.
+
+```{r}
+sigma_0 <- cbind(c(75, 0, -4), c(0, 1, 6), c(-4, 6, 366))
+sigma_0
+```
+
+Convert this covariance matrix to a correlation matrix. In plain English, what claim is being made about these three variables?
+
+
+```{r}
+D <- sqrt(diag(sigma_0))
+D <- diag(D,nrow = 3)
+invD = solve(D)
+
+corr = invD %*% sigma_0 %*% invD
+corr
+```
+
+```
+The claim being made here is that study hours and speeding tickets are independent of each other. In other words there is no relationship between the number of hours studied and driving fast.
+
+```
+
+Using R (not by hand!) calculate a test statistic for testing a null hypothesis of $H_0: \Sigma = \Sigma_0$. What does this suggest to you?
+
+```{r}
+
+allDat <- dat %>% 
+  dplyr::select(-Gender,-Year)%>%
+  as.matrix()
+
+actCov <- cov(allDat)
+
+det(sigma_0)/det(actCov)
+```
+
+
+```
+Since the value of the test statistic is so close to one, that means that the sample covariance of the entire data set is very close to the covariance suggested to us. This suggests to us that there is a good change the suggested covariance matrix is the population covariance matrix.
+
+```
+
+
+## Independence
+
+Is it reasonable to think that there is a no relationship between the hours studied, speeding tickets, and driving fast?  Calculate an appropriate test statistic and make an argument to address this question.
+
+
+```{r}
+sigma_none <- cbind(c(77.899, 0, 0), c(0, 0.954, 0), c(0, 0, 368.77))
+
+det(sigma_none)/det(actCov)
+```
+
+```
+
+Though it is a little further away from 1 than the test statistic for argument that only hours studied and speeding tickets are independent, it is still fairly close to 1, and thus would be reasonable to believe there is no relationship between the hours studied, speeding tickets, and driving fast, as the determinant for the covariance matrix with all the off diagonals (the covariances) being zero is similar to the sample covariance.
+
+```
+
+
+## Subvectors
+
+Is it reasonable to think that hours of study is independent of erratic driving (speeding tickets and fast driving)?  Calculate an appropriate test statistic and make an argument to address this question.
+
+```{r}
+sigma_other <- cbind(c(77.899, 0, 0), c(0, 0.954, 6.172), c(0, 6.172, 368.77))
+
+det(sigma_none)/det(actCov)
+```
+
+```
+The result of this test statistic is about the same as that for if all three were independent. Still the value is very close to 1, which means the determinant of the covariance matrix that displays independence between study hours and speeding tickets and study hours and fast driving is similar to the sample covariance matrix. Thus, it is reasonable to believe that hours of study are independent of erratic driving.
+```
+
+
+
+# One-Way MANOVA
+
+Consider the following statement:
+
+"Cal Poly students are equally responsible - as measured by their driving speed, speeding tickets, and study hours - in every year of schooling."
+
+First, use and duplicate the following code to look at the data.  Do the plots seem to support this statement?
+
+```{r}
+ggplot(dat, aes(x = Year, y = StudyHours, fill = Year)) + geom_boxplot()
+ggplot(dat, aes(x = Year, y = SpeedTickets, fill = Year)) + geom_boxplot()
+ggplot(dat, aes(x = Year, y = FastDrive, fill = Year)) + geom_boxplot()
+```
+```
+*Note: As there is only 1 master student, I have chosen to only look through freshmen to senior years.
+
+Looking at the plots for all three, it does not seem to be the case. It looks like sophomores tend to speed far more than the other years , and freshman virtually get no speeding tickets at all, as do half of all juniors. Juniors also seem to be the group that studies the most, followed by sophomores.
+```
+Next, perform an appropriate test to address the statement.  Make sure to state your null and alternate hypothesis, and to perform an appropriate adjustment of the data before using the `manova()` function in R.
+
+```{r}
+mv.mod <- manova(cbind(StudyHours,SpeedTickets ,FastDrive) ~ factor(Year), data = dat)
+mv.sum <- summary(mv.mod, test = "Wilks")
+
+H = round(mv.sum$SS[[1]], 0)
+E = round(mv.sum$SS[[2]], 0)
+
+H
+E
+mv.sum
+```
+
+```
+H0 = The means for study hours, speeding tickets, and fast driving are the same across all years.
+Ha = The means for study hours, speeding tickets, and fast driving are not the same across all years.
+
+The p-value 0.0034 which is less than the alpha of 0.05. Thus we reject H0 in favor of Ha. There is a significant difference means between years.
+
+```
+
+
+
+# Two-Way MANOVA
+
+Now consider a different statement:
+
+"Cal Poly students are equally responsible - as measured by their driving speed, speeding tickets, and study hours - in every year of schooling. Furthermore, male and female identifying students are also equally responsible, in terms of those three measurements."
+
+Perform appropriate test(s) to address this statement.
+
+```{r}
+#only valid with pool; manova
+mv.mod <- manova(cbind(StudyHours,SpeedTickets ,FastDrive) ~ factor(Year)*factor(Gender), data = dat)
+mv.sum <- summary(mv.mod, test = "Wilks")
+
+HA = round(mv.sum$SS[[1]], 0)
+HB = round(mv.sum$SS[[2]], 0)
+HAB = round(mv.sum$SS[[3]], 0)
+E = round(mv.sum$SS[[4]], 0)
+
+mv.sum
+```
+
+```
+H0y = The means for study hours, speeding tickets, and fast driving are the same across all years.
+H0g = The means for study hours, speeding tickets, and fast driving are the same across all genders.
+H0yg = The means for study hours, speeding tickets, and fast driving are the same across all pairings of genders and years.
+
+Hay = The means for study hours, speeding tickets, and fast driving are not the same across all years.
+Hag = The means for study hours, speeding tickets, and fast driving are not the same across all genders.
+Hayg = The means for study hours, speeding tickets, and fast driving are not the same across all pairings of genders and years.
+
+The p-values for year and gender are well below an alpha of 0.05, thus we reject the null hypothesis the means are the same across groups for groups based on year and gender. However, there doesn't seem to be a relationship between the interplay of the two of them as the p-value for that statistic is 0.1163, thus we fail to reject the null hypothesis that the means for study hours, speeding tickets, and fast driving are the same across all pairings of genders and years.
+
+
+```
+
+What are the assumptions about the data for the test you performed?
+
+
+```
+We are assuming that there are equal covariances among the groups. In order to test this, we need to do a Box's M test. We all need to assume that the groups are multivariate normal, and all randomly sampled.
+```

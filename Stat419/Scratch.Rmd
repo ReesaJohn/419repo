@@ -1,0 +1,33 @@
+---
+title: "ScratchPad"
+author: "Reesa John"
+date: "April 23, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+HCov <- matrix(c(2210409,11216,11216,85 ),nrow= 2, ncol = 2 )
+ECov <- matrix(c(37486,3775,3775,1309),nrow=2,ncol =2)
+on
+#bigger determinant, more variance; 0 determinant , perfectly correlated
+
+null = HCov+ECov
+alt = ECov
+
+
+(det(null)/det(alt))
+(det(alt)/det(null))#winnner #this is wilks lamda
+
+#Under H0,close to 1
+#Under Ha, small values
+
+
+#pull H mv.sum$SS[[1]],0
+#pull E mv.sum$SS[[2]],
+#boxm(cbind SAT ACT ~ factor(School), data = Y_all)
+
+```

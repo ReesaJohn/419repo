@@ -1,0 +1,356 @@
+---
+title: 'DA 2: Characterizing Multivariate Data'
+author: "Reesa John"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r, include = FALSE}
+## IGNORE THIS
+options(digits=3)
+knitr::opts_chunk$set(fig.width=4, fig.height=4) 
+library(dplyr)
+library(ggplot2)
+library(aplpack)
+library(stringr)
+library(plotly)
+library(GGally)
+```
+
+***
+
+# Part Two:  Numerical Summaries and Characterizations
+
+Suppose through the miracle of time travel, you now work at US News and World Report in 1995.  You would like to come up with a way to rank all the colleges, based only on the following variables:  Average SAT Score, Average ACT Score, Acceptance Rate, Out-of-State Tuition, and Spending per student.
+
+Load and edit the data, if you have not already:
+
+```{r, eval = TRUE}
+
+# Read Data
+colleges = read.csv('http://kbodwin.web.unc.edu/files/2016/09/tuition_final.csv')
+
+# Adjust labels for later
+
+colleges <- colleges %>% mutate(
+  Name = gsub("California State Univ. at", "CSU", Name),
+  Name = gsub("California State University at", "CSU", Name),
+  Name = gsub("California Polytechnic", "Cal Poly", Name),
+  Name = gsub("California Poly", "Cal Poly", Name),
+  Name = gsub("University of California at", "UC", Name)
+)
+
+```
+
+First, create a data matrix called `Y` which contains only the information we are interested in.
+
+```{r}
+
+Y <- colleges %>% 
+  mutate(Accpt.rate = Accepted/Applied )%>%
+  select(Avg.SAT,Avg.ACT,Out.Tuition, Accpt.rate, Spending)%>%
+  na.omit()
+
+Y <- as.matrix(Y)
+dim(Y)
+```
+
+* What is the dimension of `Y`?
+
+```
+A 470 x 5 matrix.
+
+```
+
+Next, find the mean and variances of each variable in `Y`, and save them as vectors.  You may wish to use the function `apply()` for this task.
+
+
+```{r}
+
+means_Y <- apply(Y,2,mean)
+
+vars_Y <- apply(Y,2,var)
+
+```
+
+
+Now calculate the full covariance matrix of `Y`.  Do this in two ways:  First, use the function `cov()` to automatically find the matrix.  Then, use what you know about matrix multiplication to construct the covariance from scratch.  Check that your two answers are the same.
+
+```{r}
+
+S <- cov(Y)
+
+Ybar = matrix(means_Y,nrow=470,ncol=length(means_Y),byrow=TRUE)
+
+df = 470-1
+
+tempY = Y-Ybar
+
+myCov = (t(tempY)%*%(tempY))*(1/df)
+
+myCov
+S
+```
+
+***
+
+You are considering three possible schemes for scoring the schools:
+
+1. *Equal weights*:  You will weigh all 5 variables as equally important.
+2. *Scores only*:  You will only consider the SAT and ACT scores in your ranking.
+3. *Complex formula*:  20% SAT Score, 20% ACT Score, 10% Acceptance Rate, 25% Tuition, 25% Spending. (This is approximately the actual weights that US News gives to these variables; however, they also include many more variables that we do not have access to data for.)
+
+Make a matrix `A`, which should have dimension 3 by 5, that contains the weights for the three ranking schemes proposed.
+
+```{r}
+
+s1 = c(0.2,0.2,0.2,0.2,0.2)
+s2 = c(0.5,0.5,0.0,0.0,0.0)
+s3 = c(0.2,0.2,0.1,0.25,0.25)
+
+A <- as.matrix(rbind(s1,s2,s3))
+```
+
+
+Note that our variables of interest are on different scales; an average SAT score is around 1000, while an average acceptance rate is around 0.75.  To combine these, we want our measurements to be "unitless".  Make a new data matrix where each variable has been standardized by its sample mean and variance.  Then calculate the mean vector and covariance matrix for this adjusted data.
+
+
+```{r}
+
+sdrow <- sapply(vars_Y,sqrt)
+
+sdrow <- matrix(sdrow,nrow=470,ncol=length(sdrow),byrow=TRUE)
+
+Y_std <- (Y-Ybar)/sdrow
+
+y_bar_std <-  apply(Y_std,2,mean)
+S <- cov(Y_std)
+
+y_bar_std
+S
+```
+
+* What values are in y-bar?  What values are on the diagonal of S?  Why do these make sense?
+
+```
+I printed out the values of y-bar, which are all essentially 0. The diagonals on S are all 1 because the standard deviation of a standardized variable is 1, and thus the the variance which is square of the standard deviation is also 1. Since we standardized it to have a mean of 0 and a standard deviation of 1, this makes sense.
+```
+
+Use an appropriate matrix operation to find the mean score for each of the three ranking schemes.
+
+we have a 3 rows of 470 stuff, and we want 3 means, 1 for each row.
+
+```{r}
+mean_scores <-rowMeans(A%*%t(Y_std))
+mean_scores
+```
+
+Interpret these mean scores.
+
+```
+The means of all three variables are essentially 0. This is because they are made from a linear combination of standardized variables with means also practically 0, so naturally their means will also be 0.
+```
+
+Use an appropriate matrix operation to find the variances of the three ranking schemes.
+
+
+```{r}
+rankS <- (A)%*%S%*%t(A)
+rankS
+```
+
+***
+
+Use an appropriate matrix operation to find the scores in each of the three schemes for all the colleges in our dataset (except those with missing data).  Note that this should be an $n$ by 3 matrix, where columns represent the three scores.
+
+```{r}
+
+scores <- Y_std%*%t(A)
+
+```
+
+Convert your scores matrix to a matrix of ranks; that is, assign each college a number from 1 to $n$ based on their score, where 1 is the most "desirable" college.
+
+```{r}
+
+s1 <- rank(-scores[,1],ties.method = "min")
+s2 <- rank(-scores[,2],ties.method = "min")
+s3 <- rank(-scores[,3],ties.method = "min")
+
+ranks <- colleges %>% 
+  mutate(Accpt.rate = Accepted/Applied )%>%
+  select(Name,Avg.SAT,Avg.ACT,Out.Tuition, Accpt.rate, Spending)%>%
+  na.omit()%>%select(Name)
+
+ranks <- cbind(ranks,s1,s2,s3)
+
+```
+
+What are the top 10 ranked colleges for each scheme?  Which scheme do you like best, based on this?
+
+This is for scheme 1.
+```{r}
+### Make use of this code to find your answers ###
+ranks %>%
+  filter(s1 <= 10) %>%
+  arrange(s1)%>%
+  select(Name)
+```
+```
+This is for scheme 2.
+```
+```{r}
+ranks %>%
+  filter(s2 <= 10) %>%
+  arrange(s2)%>%
+  select(Name)
+```
+```
+This is for scheme 3.
+```
+```{r}
+ranks %>%
+  filter(s3 <= 10) %>%
+  arrange(s3)%>%
+  select(Name)
+```
+
+```
+I think overall I prefer scheme 3 the most since it considers both test scores but is a little more focused on acceptance rate and spending per student, which is also pretty important in ranking schools in my opinion. The only thing I have an isssue is that they consider out of state tuition at all, since I don't think it means too much, but even then it is what is given the lowest weight.
+```
+Where does Cal Poly rank for each scheme?
+
+```{r}
+
+ranks %>% filter(Name == "Cal Poly-San Luis")
+
+```
+
+***
+
+## Your turn
+
+Choose one or more of the ranking schemes.  Find an interesting insight into college rankings based on this scheme, by studying the relationship between the ranks and at least one of the variables that we did *not* include in the ranking scheme.  Support your observation with plots and numerical summaries.
+
+```{r}
+colleges_2 <- colleges%>% 
+  mutate(Accpt.rate = Accepted/Applied )%>%
+  filter(!is.na(Avg.SAT))%>%
+  filter(!is.na(Avg.ACT))%>%
+  filter(!is.na(Accpt.rate))%>%
+  filter(!is.na(Out.Tuition))%>%
+  filter(!is.na(Spending))
+
+colleges_2 <- cbind(colleges_2,s1,s2,s3)
+
+colleges_2 <- colleges_2 %>%
+  mutate(
+    rank1 = case_when(
+      
+      s1 <= 47  ~ "1-47",
+      s1 > 47  & s1<= 94 ~ "48-94",
+      s1 > 94  & s1<= 141 ~ "95-141",
+      s1 > 141 & s1<= 188 ~ "142-188",
+      s1 > 188 & s1<= 235 ~ "189-235",
+      s1 > 235 & s1<= 282 ~ "236-282",
+      s1 > 282 & s1<= 329 ~ "283-329",
+      s1 > 329 & s1<= 376 ~ "330-376",
+      s1 > 376 & s1<= 423 ~ "377-423",
+      TRUE                ~ "424-470"
+    ),
+    rank2 = case_when(
+      
+      s2 <= 47  ~ "1-47",
+      s2 > 47  & s2<= 94 ~ "48-94",
+      s2 > 94  & s2<= 141 ~ "95-141",
+      s2 > 141 & s2<= 188 ~ "142-188",
+      s2 > 188 & s2<= 235 ~ "189-235",
+      s2 > 235 & s2<= 282 ~ "236-282",
+      s2 > 282 & s2<= 329 ~ "283-329",
+      s2 > 329 & s2<= 376 ~ "330-376",
+      s2 > 376 & s2<= 423 ~ "377-423",
+      TRUE                ~ "424-470"
+    ),
+    rank3 = case_when(
+      
+      s3 <= 47  ~ "1-47",
+      s3 > 47  & s3<= 94 ~ "48-94",
+      s3 > 94  & s3<= 141 ~ "95-141",
+      s3 > 141 & s3<= 188 ~ "142-188",
+      s3 > 188 & s3<= 235 ~ "189-235",
+      s3 > 235 & s3<= 282 ~ "236-282",
+      s3 > 282 & s3<= 329 ~ "283-329",
+      s3 > 329 & s3<= 376 ~ "330-376",
+      s3 > 376 & s3<= 423 ~ "377-423",
+      TRUE                ~ "424-470"
+    )
+    
+  )
+
+```
+```
+I have chosen to create 10 groupings for each rank based on how high in rank they are for each.
+```
+```{r}
+colleges_2 %>%
+  group_by(rank1)%>%
+  na.omit()%>%
+  summarize(Applied = mean(Applied))%>%
+  arrange(desc(Applied))
+```
+
+```{r}
+colleges_2 %>%
+  group_by(rank1)%>%
+  na.omit()%>%
+  summarize(Applied = mean(Applied))%>%
+  ggplot(aes(x=rank1,y=Applied, fill = rank1))+ geom_col()+
+  theme(axis.text.x=element_text(angle=45,hjust=1))
+```
+
+```{r}
+colleges_2 %>%
+  group_by(rank2)%>%
+  na.omit()%>%
+  summarize(Applied = mean(Applied))%>%
+  arrange(desc(Applied))
+```
+
+
+```{r}
+colleges_2 %>%
+  group_by(rank2)%>%
+  na.omit()%>%
+  summarize(Applied = mean(Applied))%>%
+  ggplot(aes(x=rank2,y=Applied, fill = rank2))+ geom_col()+
+  theme(axis.text.x=element_text(angle=45,hjust=1))
+  
+```
+
+```{r}
+colleges_2 %>%
+  group_by(rank3)%>%
+  na.omit()%>%
+  summarize(Applied = mean(Applied))%>%
+  arrange(desc(Applied))
+```
+
+
+```{r}
+colleges_2 %>%
+  group_by(rank3)%>%
+  na.omit()%>%
+  summarize(Applied = mean(Applied))%>%
+  ggplot(aes(x=rank3,y=Applied, fill = rank3))+ geom_col()+
+  theme(axis.text.x=element_text(angle=45,hjust=1))
+```
+
+`For all three, it is clear from both the numerical summary and the graphs that the mean number of applications for the top 47 in all 3 types of rankings. Suprisingly, the lowest ranked schooles tend to be in the middle of the pack in terms of applications when using ranking types 1 and 3, but when you only consider ACT and SAT scores like in ranking type 2, they are near the bottom. The opposite is true for the top 48-94 schools which tended to be 2nd to last in terms of applications when weighing all factors, but were in the middle of the pack when looking only at standardized test scores.
+```{r}
+d = c(-0.32,0.94)
+C1=matrix(c(1.1,0.329,0.329,0.573),nrow=2,ncol=2)
+dmult =c(-0.04,0.43)
+(693/54)*(dmult%*%d)
+```
+

@@ -1,0 +1,142 @@
+---
+title: "DA 1: Practice with Matrix Operations"
+author: "Reesa John"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)  #ignore this
+```
+
+## Introduction
+
+Typically, we will use lab time to do analyses of real datasets.  For today's first lab, however, we will just be practicing some linear algebra in R.  However, we can still use real data!
+
+You will be asked to perform a series of calculations on a matrix of numbers.  If you follow all the steps successfully, your end result will be a matrix of pixel intensities for an image - that is, if you plot your matrix (I have supplied the code for that), you will see a black and white photograph.
+
+## Setup 
+
+Run the following code chunk to load up your matrix (M), and to generate some random matrices and vectors that we will use along the way.
+
+```{r, echo=FALSE, message= FALSE,warning=FALSE, comment=FALSE}
+library(matlib)
+```
+
+
+```{r}
+### DO NOT CHANGE ANYTHING IN THIS CODE CHUNK!!!
+
+M = read.csv("https://www.dropbox.com/s/vc2zv5jwwzsetid/img.txt?dl=1", header = FALSE)
+M = as.matrix(M)
+
+
+n = nrow(M)
+p = ncol(M)
+
+set.seed(123)
+A <- diag(rnorm(p))
+set.seed(456)
+B <- tcrossprod(as.matrix(array(rnorm(25), c(5,5))))
+set.seed(789)
+x <- abs(rnorm(p))
+set.seed(101)
+y <- rnorm(n)
+set.seed(112)
+H <- as.matrix(array(rnorm(n*p), c(n,p)))
+
+```
+
+
+## Your turn
+
+Before you knit this file to turn in, delete everything above "Your Turn", except for the setup code chunk.
+
+Perform the following steps (we have already done 1 and 2) to discover the secret picture!
+
+
+1. Matrix-multiply M by A.
+```{r}
+
+M <- M %*% A
+
+```
+
+
+2. Multiply every row of M elementwise by x. 
+```{r}
+M <- t(M)*x
+
+M <- t(M)
+
+```
+
+
+3. Make a diagonal matrix called Y whose diagonal values are the elements of the vector y.  Matrix-multiply the inverse of Y by M.
+```{r}
+Y <-diag(y)
+M <- inv(Y) %*% M
+
+```
+
+
+4.  Calculate the determinant of B.  Add this scalar to every element of M.
+```{r}
+M<-M+det(B)
+
+```
+
+
+5. Use `eigen()` to find the eigenvalues and eigenvectors of B.  Find the sum of the third eigenvector of B. Multiply every element of M by this scalar.
+```{r}
+M<-M*sum(eigen(B)$vectors[,3])
+
+```
+
+
+6. Multiply each element of M by the corresponding element of the matrix formed by (xy')'.
+```{r}
+M<-M * t(x %*% (t(y)))
+
+```
+
+
+7. Find the singular value decomposition H = UDV' using `svd()`.  Multiply each element of M by each element of 100*U. 
+```{r}
+M<-M*(svd(H)$u)*100
+
+
+```
+
+
+8. Calculate the sum of the singular values of H.  Divide *every* element of M by this scalar.
+```{r}
+sum1 = sum(svd(H)$u)+sum(svd(H)$d)+sum(svd(H)$v)
+M<-M*(1/sum1)
+```
+
+
+## The results
+
+Run the following code to plot your result.  If it does not look like a real photographic image, something has gone wrong - go back and check your steps.
+
+```{r}
+image(M, col = gray((1:100)/100), asp = 1, axes = FALSE)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

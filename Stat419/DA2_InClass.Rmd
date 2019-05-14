@@ -1,0 +1,205 @@
+---
+title: 'Lab 2: Summarizing Multivariate Data'
+author: "Reesa Johninsta"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r, include = FALSE}
+## IGNORE THIS
+options(digits=3)
+knitr::opts_chunk$set(fig.width=7) 
+library(dplyr)
+library(ggplot2)
+library(aplpack)
+library(stringr)
+library(plotly)
+library(GGally)
+library(skimr)
+```
+
+## Reading the Data
+
+In this lab, we will examine data college tuition rates, based on a 1995 dataset from US News and World Report.
+
+```{r, eval = TRUE}
+
+# Read Data
+colleges = read.csv('http://kbodwin.web.unc.edu/files/2016/09/tuition_final.csv')
+
+# Adjust labels for later
+
+colleges <- colleges %>% mutate(
+  Name = gsub("California State Univ. at", "CSU", Name),
+  Name = gsub("California State University at", "CSU", Name),
+  Name = gsub("California Polytechnic", "Cal Poly", Name),
+  Name = gsub("California Poly", "Cal Poly", Name),
+  Name = gsub("University of California at", "UC", Name)
+)
+
+```
+
+Check out the `summary()` of the dataset and familiarize yourself with the variables. 
+
+```{r}
+summary(colleges)
+skim(colleges)
+```
+
+*  Briefly describe the variables in this dataset - what do they represent?  What are the possible values?
+
+ID is the ID# of the college, Names are the name of college, State is where the college is located, Public is if it is public or not, Avg.SAT and Avg.ACT is the average ACT and SATs, Applied is number of people applied, Accepted is number of people accepted. Size is size of college, Out.Tutiton is out of state tuition, and Spending is how much the school spends.
+***
+## Adjusting and cleaning the data
+
+Note that the variable "Public" tells us whether a school is public or private.  However, the categories are labeled "1" and "2", so R thinks this is a numerical value.  We will use the dplyr function `mutate()` to adjust this variable, and also to create a new one called `Acc.Rate`.
+
+```{r}
+colleges <- colleges %>% 
+  mutate(
+    Public = factor(Public, labels = c("Public", "Private")),
+    Acc.Rate = Accepted/Applied
+  )
+```
+
+*  What information is now contained in the variable Acc.Rate?  Why might we prefer this to the original data?
+
+It tells us the percentage of people that applied that got accepted. We might prefer it since it shows how selective a school which standardizes it more.
+
+*  What would happen if we removed "colleges <-" from the beginning of the above code? 
+
+It wouldn't update the colleges data frame.
+
+***
+Now we would like to take a look at the public schools in California, and compare them using our multivariate plotting tools.  First, let's make a dataset containing only these schools using the dplyr function `filter()`.
+
+```{r}
+# Dataset of only CA public schools
+CA_public <- colleges %>%
+  filter(State == "CA", Public == "Public") %>% 
+  select(Name, Avg.SAT, Acc.Rate, Size, Out.Tuition, Spending) %>%
+  na.omit()
+```
+
+*  What did we do in the third line of code, using "select()"?
+
+We only selected the data we wanted to know about for viewing:the school's name, average SAT score, it's acceptance rate, the size of the college,it's out of state tuition, and the school's spending 
+
+*  What did "na.omit()" do in the fourth line of code?
+We omitted rows that contained NAs in any of the selected variables
+
+
+***
+## Face Plots
+
+Now we can make plots for the CA public schools for which we have full information.  We will start with the Chernoff faces plotting style.
+
+```{r}
+
+CA_public %>%
+  select(Avg.SAT, Acc.Rate, Size, Out.Tuition, Spending) %>%
+  faces(labels = CA_public$Name)
+```
+
+*  What do you observe from this plot?  Which schools are similar to each other?  Which schools stand out as unique?
+The UCs resemble each other save UCSD, UCLA, and UCB but they seem similar to each other in color and face shape and most of he CSUs seem to resemble at least one of the other CSUs. Sonoma State University seems to stand out the most. Westmont College seems to be be very odd in face shape.
+
+*  What are the advantages and disadvantages of the face plot style?
+Face plots display more variables on a 2d plot, but it's hard to interpret the results.
+
+***
+## Star plots
+
+One downside of the face plots is that it is difficult to tell which specific variables are being compared.  A solution to this is called "star plots".
+
+```{r}
+CA_public %>%
+  select(Avg.SAT, Acc.Rate, Size, Out.Tuition, Spending) %>%
+  stars(labels = CA_public$Name, nrow = 4, key.loc = c(0,10), cex = .5)
+
+```
+
+*  Which school has the highest out-of-state tuition in this data?
+Westmont college seems to be quite pricey for out of state tuition.
+
+*  Which school has the lowest acceptance rate in this data?
+Either Sonoma State University or UC Berkeley.
+
+*  Which two schools seem most similar to you, based on these plots?
+CSU FUllerton and SJSU have a similar shape for all 5 variables and are of similar size
+
+
+*  What are the advantages and disadvantages of this plot style?
+You can effectively plot multiple variables on a 2d plot and know which variables are what, but it's hard to read if there are too many variables and can give the wrong interpretation of certain variables if a low variable is next to an average variable.
+***
+## Segmented Star Plots
+
+To better visualize our data, we can "segment" our star plots, and plot them as slices of a circular area rather than as lines in a polygon.
+
+```{r}
+CA_public %>%
+  select(Avg.SAT, Acc.Rate, Size, Out.Tuition, Spending) %>%
+  stars(labels = CA_public$Name, nrow = 4, key.loc = c(0,10), cex = .5, draw.segments = TRUE, col.segments = rainbow(6))
+```
+
+
+*  In what way does Cal Poly most differ from the other CSUs?
+Our acceptance rate is lower, and average SAT is higher.
+
+*  In what way does Westmont College most differ from the other schools?
+Their out of state tuition is by far the largest.
+
+*  Which is the largest public school in California?
+UCLA looks to be the largest of the public
+
+*  What are the advantages and disadvantages of this plot style?
+It's a lot more distinct between variables and the shape for each variable is maintained. However if the variables value is too tiny we can't see and if there is something large next to something small, it is misleading. 
+***
+## Scatterplots 
+
+Finally, we can think about pairwise relationships between variables, rather than comparisons between schools.  We will use the `ggplot2` framework for these plots.  Make sure that you understand each step in the code below: 
+
+
+```{r}
+colleges %>%
+  ggplot(aes(x = Avg.SAT, y = Out.Tuition)) + geom_point() + facet_grid(~Public)
+```
+
+*  Based on these scatterplots, is there a relationship between Average SAT score and the out-of-state tuition of a school?
+The points trends up for both charts, so higher SAT seems to be associated with a higher tuition.
+
+*  Based on these scatterplots, is the relationship different for Public versus Private schools?
+For the part of SAT scores that both plots have, the relationship seems about the same.
+
+***
+
+We can also quite easily make all the possible scatterplots for the dataset using the `ggplot` function `ggpairs`:
+
+```{r}
+colleges %>%
+  select(Public, Avg.SAT, Acc.Rate, Size, Out.Tuition, Spending) %>%
+  na.omit() %>%
+  ggpairs()
+```
+
+* Are there more public schools or more private schools in this dataset?
+There are more private schools.
+
+* Which variables are very different between public schools and private schools?  Does this surprise you?
+Out of state tuition is cheaper for public schools, and public schools tend to have larger sizes
+
+* Which variables seem to be strongly positively correlated?  In real world terms, why does this make sense?
+Spending and Out of state tuition seems to be more strongly positivelt correlated, which makes sense since more money in tuition means more money to spend.
+Average SAT are also highly correlated to high out of state tuition and school spending, since people with high SAT scores probably could afford tutoring to get those scores.
+
+* Which variables seem to be strongly negatively correlated?  In real world terms, why does this make sense?
+Acceptance rate is relatively negatively correlated to average SAT (more selective schools can get more smarter kids), and if they are more selective, they can usually charge higher tuition which is why acceptance rate is relatively negatively correlated to average SAT.
+
+* Which variables, if any, seem like they might be Normally distributed?
+Average SAT
+
+
+
+
+
